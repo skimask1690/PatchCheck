@@ -65,15 +65,15 @@ class Program
         IntPtr hProcess = OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, false, targetProcessId);
         if (hProcess == IntPtr.Zero)
         {
-            Console.WriteLine("\nFailed to open process. Error: " + Marshal.GetLastWin32Error() + "");
+            Console.WriteLine("\nFailed to open process. Error: " + Marshal.GetLastWin32Error());
             return;
         }
 
-	Console.WriteLine("");
+        Console.WriteLine("");
         Console.WriteLine("***********************************************");
         Console.WriteLine("                      AMSI                     ");
         Console.WriteLine("***********************************************");
-        
+
         // Load amsi.dll
         IntPtr hAmsi = LoadLibrary("amsi.dll");
         if (hAmsi != IntPtr.Zero)
@@ -86,14 +86,14 @@ class Program
         }
         else
         {
-            Console.WriteLine("\nFailed to load amsi.dll. Error: " + Marshal.GetLastWin32Error() + "");
+            Console.WriteLine("\nFailed to load amsi.dll. Error: " + Marshal.GetLastWin32Error());
         }
 
-	Console.WriteLine("");
+        Console.WriteLine("");
         Console.WriteLine("***********************************************");
         Console.WriteLine("                      ETW                      ");
         Console.WriteLine("***********************************************");
-        
+
         // Load ntdll.dll
         IntPtr hNtdll = LoadLibrary("ntdll.dll");
         if (hNtdll != IntPtr.Zero)
@@ -105,7 +105,7 @@ class Program
         }
         else
         {
-            Console.WriteLine("\nFailed to load ntdll.dll. Error: " + Marshal.GetLastWin32Error() + "");
+            Console.WriteLine("\nFailed to load ntdll.dll. Error: " + Marshal.GetLastWin32Error());
         }
 
         CloseHandle(hProcess);
@@ -130,7 +130,7 @@ class Program
         IntPtr functionAddress = GetProcAddress(hModule, functionName);
         if (functionAddress == IntPtr.Zero)
         {
-            Console.WriteLine($"Failed to get address of {functionName}. Error: " + Marshal.GetLastWin32Error() + "");
+            Console.WriteLine("Failed to get address of " + functionName + ". Error: " + Marshal.GetLastWin32Error());
             return;
         }
 
@@ -139,14 +139,14 @@ class Program
         if (VirtualQueryEx(hProcess, functionAddress, out mbi, (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION))) == IntPtr.Zero ||
             mbi.State != MEM_COMMIT)
         {
-            Console.WriteLine($"\nInvalid address for {functionName}. MEMORY_BASIC_INFORMATION: BaseAddress=0x{mbi.BaseAddress.ToString("X")}, State={mbi.State}, Protect={mbi.Protect}");
+            Console.WriteLine("\nInvalid address for " + functionName + ". MEMORY_BASIC_INFORMATION: BaseAddress=0x" + mbi.BaseAddress.ToString("X") + ", State=" + mbi.State + ", Protect=" + mbi.Protect);
             return;
         }
 
         // Check if the memory is readable
         if (mbi.Protect != PAGE_READWRITE && mbi.Protect != PAGE_EXECUTE_READ)
         {
-            Console.WriteLine($"\n{functionName} is not in a readable state. Protect={mbi.Protect}");
+            Console.WriteLine("\n" + functionName + " is not in a readable state. Protect=" + mbi.Protect);
             return;
         }
 
@@ -158,16 +158,16 @@ class Program
         bool readSuccess = ReadProcessMemory(hProcess, functionAddress, buffer, (uint)buffer.Length, out bytesRead);
         if (!readSuccess)
         {
-            Console.WriteLine($"Failed to read memory for {functionName}. Error: " + Marshal.GetLastWin32Error() + "");
+            Console.WriteLine("Failed to read memory for " + functionName + ". Error: " + Marshal.GetLastWin32Error());
             return;
         }
 
         if (bytesRead < buffer.Length)
         {
-            Console.WriteLine("\nIncorrect bytes read: " + bytesRead + "");
+            Console.WriteLine("\nIncorrect bytes read: " + bytesRead);
         }
 
-        Console.WriteLine($"\nBytes read from {functionName}:");
+        Console.WriteLine("\nBytes read from " + functionName + ":");
         for (int i = 0; i < bytesRead; i++)
         {
             Console.Write(buffer[i].ToString("X2") + " ");
